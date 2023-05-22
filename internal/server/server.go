@@ -6,8 +6,18 @@ import (
 	"github.com/Ullaakut/nmap/v3"
 	"github.com/gRPC-nmap-wrapper/pkg/api"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 )
+
+type Table struct {
+	elems []Elem `xml:"table"`
+}
+
+type Elem struct {
+	elem string `xml:"elem"`
+}
 
 type GRPCServer struct{}
 
@@ -27,10 +37,15 @@ func (s *GRPCServer) CheckVuln(ctx context.Context, req *api.CheckVulnRequest) (
 	scanner, err := nmap.NewScanner(
 		ctx,
 		nmap.WithTargets(req.GetTargets()...),
-		nmap.WithPorts(ports[:len(ports)-2]),
+		nmap.WithPorts(strings.TrimSuffix(ports, ", ")),
+		nmap.WithCustomArguments("-sV"),
+		nmap.WithScripts("vulners"),
+		nmap.WithScriptArguments(map[string]string{
+			"mincvss": "5.0",
+		}),
 	)
 	if err != nil {
-		log.Fatalf("unable to create nmap scanner: %v", err)
+		return nil, err
 	}
 
 	result, warnings, err := scanner.Run()
@@ -40,6 +55,7 @@ func (s *GRPCServer) CheckVuln(ctx context.Context, req *api.CheckVulnRequest) (
 	if err != nil {
 		log.Fatalf("unable to run nmap scan: %v", err)
 	}
+	fmt.Println("Done!")
 
 	results := &api.CheckVulnResponse{
 		Results: make([]*api.TargetResult, 0, len(req.GetTargets())),
@@ -58,16 +74,31 @@ func (s *GRPCServer) CheckVuln(ctx context.Context, req *api.CheckVulnRequest) (
 		}
 
 		for _, port := range host.Ports {
+
+			var vulns []*api.Vulnerability
+
+			for _, script := range port.Scripts {
+				for _, table := range script.Tables {
+					for _, subTable := range table.Tables {
+						vuln := &api.Vulnerability{}
+						for _, element := range subTable.Elements {
+							if element.Key == "id" {
+								vuln.Identifier = element.Value
+							} else if element.Key == "cvss" {
+								cvss, _ := strconv.ParseFloat(element.Value, 32)
+								vuln.CvssScore = float32(cvss)
+							}
+						}
+						vulns = append(vulns, vuln)
+					}
+				}
+			}
+
 			targetResult.Services = append(targetResult.Services, &api.Service{
 				Name:    port.Service.Name,
 				Version: port.Service.Version,
 				TcpPort: int32(port.ID),
-				Vulns: []*api.Vulnerability{
-					{
-						Identifier: port.State.State,
-						CvssScore:  0,
-					},
-				},
+				Vulns:   vulns,
 			})
 		}
 
