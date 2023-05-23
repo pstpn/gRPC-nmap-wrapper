@@ -1,6 +1,7 @@
 MAIN_FILE=cmd/app/main.go
 PROTO_FILE=./internal/server/api/netvuln.proto
-PORT=8080
+CLIENT_PROTO_FILE=./e2e/api/netvuln.proto
+PORT=4000
 
 run:
 	go run $(MAIN_FILE)
@@ -11,4 +12,4 @@ generate:
 evans:
 	evans $(PROTO_FILE) -p $(PORT)
 
-.PHONY: run generate evans start-docker
+.PHONY: run generate evans
