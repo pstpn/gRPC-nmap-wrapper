@@ -4,30 +4,15 @@ import (
 	"context"
 	"fmt"
 	"github.com/Ullaakut/nmap/v3"
-	"github.com/gRPC-nmap-wrapper/pkg/api"
+	"github.com/gRPC-nmap-wrapper/internal/server/api"
 	"log"
 	"strconv"
 	"strings"
-	"time"
 )
-
-type Table struct {
-	elems []Elem `xml:"table"`
-}
-
-type Elem struct {
-	elem string `xml:"elem"`
-}
 
 type GRPCServer struct{}
 
 func (s *GRPCServer) CheckVuln(ctx context.Context, req *api.CheckVulnRequest) (*api.CheckVulnResponse, error) {
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-
-	// Equivalent to `/usr/local/bin/nmap -p 80,443,843 google.com facebook.com youtube.com`,
-	// with a 5-minute timeout.
 
 	ports := ""
 	for _, port := range req.GetTcpPort() {
@@ -48,10 +33,7 @@ func (s *GRPCServer) CheckVuln(ctx context.Context, req *api.CheckVulnRequest) (
 		return nil, err
 	}
 
-	result, warnings, err := scanner.Run()
-	if len(*warnings) > 0 {
-		log.Printf("run finished with warnings: %s\n", *warnings) // Warnings are non-critical errors from nmap.
-	}
+	result, _, err := scanner.Run()
 	if err != nil {
 		log.Fatalf("unable to run nmap scan: %v", err)
 	}

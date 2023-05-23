@@ -2,15 +2,15 @@ syntax = "proto3";
 
 package netvuln.v1;
 
-option go_package = "pkg/api";
+option go_package = "./internal/server/api/";
 
 service NetVulnService {
   rpc CheckVuln(CheckVulnRequest) returns (CheckVulnResponse);
 }
 
 message CheckVulnRequest {
-  repeated string targets = 1; // IP addresses
-  repeated int32 tcp_port = 2; // only TCP ports
+  repeated string targets = 1;
+  repeated int32 tcp_port = 2;
 }
 
 message CheckVulnResponse {
@@ -18,7 +18,7 @@ message CheckVulnResponse {
 }
 
 message TargetResult {
-  string target = 1; // target IP
+  string target = 1;
   repeated Service services = 2;
 }
 
@@ -29,7 +29,7 @@ message Service {
   repeated Vulnerability vulns = 4;
 }
 
-message Vulnerability{
+message Vulnerability {
   string identifier = 1;
   float cvss_score = 2;
 }

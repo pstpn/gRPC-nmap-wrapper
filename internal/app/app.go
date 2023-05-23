@@ -1,14 +1,17 @@
-package main
+package app
 
 import (
-	"github.com/gRPC-nmap-wrapper/internal/server"
-	"github.com/gRPC-nmap-wrapper/pkg/api"
+	"github.com/gRPC-nmap-wrapper/internal/server/api"
 	"google.golang.org/grpc"
 	"log"
 	"net"
+
+	"github.com/gRPC-nmap-wrapper/config"
+	"github.com/gRPC-nmap-wrapper/internal/server"
+	"github.com/gRPC-nmap-wrapper/pkg/logger"
 )
 
-func main() {
+func Run(cfg *config.Config, lg *logger.Interface) {
 
 	s := grpc.NewServer()
 	srv := &server.GRPCServer{}
