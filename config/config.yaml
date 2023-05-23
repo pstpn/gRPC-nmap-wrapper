@@ -4,6 +4,7 @@ app:
 
 server:
   network: 'tcp'
+  host: 'localhost'
   port: 8080
 
 logger:

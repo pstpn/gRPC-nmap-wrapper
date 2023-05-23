@@ -5,6 +5,7 @@ import (
 
 	"github.com/gRPC-nmap-wrapper/config"
 	"github.com/gRPC-nmap-wrapper/internal/app"
+	"github.com/gRPC-nmap-wrapper/pkg/logger"
 )
 
 func main() {
@@ -13,6 +14,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Config error: %s", err)
 	}
+	l := logger.NewLogger(cfg.Logger.Level)
 
-	app.Run(cfg)
+	app.Run(cfg, l)
 }

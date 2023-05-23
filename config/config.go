@@ -21,6 +21,7 @@ type AppConfig struct {
 
 type ServerConfig struct {
 	Network string `env-required:"true" yaml:"network" env:"APP_NETWORK"`
+	Host    string `env-required:"true" yaml:"host" env:"APP_HOST"`
 	Port    int    `env-required:"true" yaml:"port" env:"APP_PORT"`
 }
 
