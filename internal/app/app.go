@@ -1,28 +1,30 @@
 package app
 
 import (
-	"github.com/gRPC-nmap-wrapper/internal/server/api"
+	"fmt"
 	"google.golang.org/grpc"
-	"log"
 	"net"
 
 	"github.com/gRPC-nmap-wrapper/config"
 	"github.com/gRPC-nmap-wrapper/internal/server"
+	"github.com/gRPC-nmap-wrapper/internal/server/api"
 	"github.com/gRPC-nmap-wrapper/pkg/logger"
 )
 
-func Run(cfg *config.Config, lg *logger.Interface) {
+func Run(cfg *config.Config, lg logger.Interface) {
 
 	s := grpc.NewServer()
 	srv := &server.GRPCServer{}
 	api.RegisterNetVulnServiceServer(s, srv)
 
-	l, err := net.Listen("tcp", ":8080")
+	address := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
+	l, err := net.Listen(cfg.Server.Network, address)
 	if err != nil {
-		log.Fatal(err)
+		lg.Error(fmt.Sprintf("app - Run - net.Listen: %e", err))
 	}
+	lg.Info(fmt.Sprintf("Server running on %s at %s", cfg.Server.Network, address))
 
 	if err = s.Serve(l); err != nil {
-		log.Fatal(err)
+		lg.Error(fmt.Sprintf("app - Run - Server.Serve: %e", err))
 	}
 }
