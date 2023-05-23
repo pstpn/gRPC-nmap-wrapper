@@ -11,7 +11,4 @@ generate:
 evans:
 	evans $(PROTO_FILE) -p $(PORT)
 
-start-docker:
-	systemctl start docker
-
 .PHONY: run generate evans start-docker
