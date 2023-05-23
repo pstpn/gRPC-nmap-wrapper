@@ -1,18 +1,17 @@
-package XMLparser
+package xmlparser
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/Ullaakut/nmap/v3"
 	"github.com/gRPC-nmap-wrapper/internal/server/api"
 )
 
-func ParseVulns(hosts []nmap.Host) []*api.TargetResult {
+func ParseVulns(nmapResult *nmap.Run) []*api.TargetResult {
 
 	var results []*api.TargetResult
 
-	for _, host := range hosts {
+	for _, host := range nmapResult.Hosts {
 		results = append(results, parseTargets(&host))
 	}
 
@@ -45,8 +44,8 @@ func parseServices(port *nmap.Port) []*api.Vulnerability {
 	for _, script := range port.Scripts {
 		for _, table := range script.Tables {
 			for _, subTable := range table.Tables {
-				vuln, err := parseVuln(&subTable)
-				if err == nil {
+				vuln, vulnFound := parseVuln(&subTable)
+				if vulnFound {
 					vulns = append(vulns, vuln)
 				}
 			}
@@ -56,12 +55,12 @@ func parseServices(port *nmap.Port) []*api.Vulnerability {
 	return vulns
 }
 
-func parseVuln(table *nmap.Table) (*api.Vulnerability, error) {
+func parseVuln(table *nmap.Table) (*api.Vulnerability, bool) {
 
+	vulnFound := false
 	vuln := &api.Vulnerability{
 		CvssScore: -1,
 	}
-	err := fmt.Errorf("no vulns")
 
 	for _, element := range table.Elements {
 		if element.Key == "id" {
@@ -70,11 +69,10 @@ func parseVuln(table *nmap.Table) (*api.Vulnerability, error) {
 			cvss, _ := strconv.ParseFloat(element.Value, 32)
 			vuln.CvssScore = float32(cvss)
 		}
-		if vuln.Identifier != "" && vuln.CvssScore != -1 {
-			err = nil
-			break
-		}
+	}
+	if vuln.Identifier != "" && vuln.CvssScore != -1 {
+		vulnFound = true
 	}
 
-	return vuln, err
+	return vuln, vulnFound
 }
