@@ -1,0 +1,10 @@
+app:
+  name: 'gRPC-nmap-wrapper'
+  version: '1.0.0'
+
+server:
+  network: 'tcp'
+  port: 8080
+
+logger:
+  log_level: 'debug'
